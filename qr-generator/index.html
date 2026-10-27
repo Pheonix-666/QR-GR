@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Google Review QR & Link Creator</title>
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="app-container">
+    <!-- Header -->
+    <header class="app-header">
+      <div class="brand-box">
+        <div class="brand-icon">
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.5">
+            <rect x="3" y="3" width="7" height="7" rx="1.5"></rect>
+            <rect x="14" y="3" width="7" height="7" rx="1.5"></rect>
+            <rect x="14" y="14" width="7" height="7" rx="1.5"></rect>
+            <rect x="3" y="14" width="7" height="7" rx="1.5"></rect>
+            <circle cx="10" cy="10" r="1.5" fill="currentColor"></circle>
+            <circle cx="17.5" cy="10" r="1.5" fill="currentColor"></circle>
+            <circle cx="6.5" cy="17.5" r="1.5" fill="currentColor"></circle>
+          </svg>
+        </div>
+        <div>
+          <h1>QR & Link Creator</h1>
+          <p class="subtitle">Generate smart QR codes linked directly to your Google Review Server</p>
+        </div>
+      </div>
+
+      <div class="server-status-pill" id="serverStatusPill">
+        <span class="status-dot"></span>
+        <span id="serverStatusText">Connecting to server...</span>
+      </div>
+    </header>
+
+    <!-- Main Grid: Form + Generated QR Output -->
+    <main class="creator-grid">
+      <!-- Input Form Card -->
+      <section class="card form-card">
+        <div class="card-title">
+          <span class="step-num">Step 1</span>
+          <h2>Create Review Link</h2>
+        </div>
+        <p class="card-desc">Enter your Google Review URL and select the industry category. The server will automatically rotate reviews when scanned.</p>
+
+        <form id="createLinkForm" class="clean-form">
+          <div class="form-group">
+            <label for="reviewUrlInput">
+              Google Review URL <span class="req">*</span>
+            </label>
+            <input 
+              type="url" 
+              id="reviewUrlInput" 
+              required 
+              placeholder="https://g.page/r/.../review or google.com/search?q=..."
+              autocomplete="off"
+            />
+            <small class="helper-text">Direct Google Review dialog link, search link, or Place ID link</small>
+          </div>
+
+          <div class="form-group">
+            <label for="businessNameInput">Business / Location Name</label>
+            <input 
+              type="text" 
+              id="businessNameInput" 
+              placeholder="e.g. Tarphe Design House, Grand Summit Hotel" 
+              autocomplete="off"
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="categorySelect">
+              Predefined Category <span class="req">*</span>
+            </label>
+            <div class="select-wrapper">
+              <select id="categorySelect" required>
+                <option value="" disabled selected>-- Loading categories from server... --</option>
+              </select>
+            </div>
+            <small class="helper-text">Each category contains pre-written 5-star positive review templates</small>
+          </div>
+
+          <button type="submit" class="btn btn-primary btn-block" id="generateBtn">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
+              <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+            </svg>
+            <span>Generate QR Code</span>
+          </button>
+        </form>
+      </section>
+
+      <!-- Output Card -->
+      <section class="card output-card">
+        <div class="card-title">
+          <span class="step-num">Step 2</span>
+          <h2>Your QR Code & Server Link</h2>
+        </div>
+
+        <!-- Placeholder when nothing generated yet -->
+        <div class="placeholder-box" id="placeholderBox">
+          <div class="placeholder-icon">📷</div>
+          <p>Fill out the form and click <strong>Generate QR Code</strong> to see your generated QR and server scan link here.</p>
+        </div>
+
+        <!-- Generated QR Result Box (Hidden by default) -->
+        <div class="result-box hidden" id="resultBox">
+          <div class="qr-preview-wrapper">
+            <img id="qrPreviewImg" src="" alt="Google Review QR Code" />
+            <div class="qr-meta-tag">
+              <span class="cat-badge" id="resultCatBadge">CATEGORY</span>
+              <h3 id="resultBizName">Business Name</h3>
+            </div>
+          </div>
+
+          <div class="server-link-box">
+            <label>Server Scan Destination URL:</label>
+            <div class="url-input-row">
+              <input type="text" id="serverScanUrl" readonly />
+              <button type="button" class="btn btn-sm btn-secondary" id="copyScanUrlBtn">Copy</button>
+            </div>
+          </div>
+
+          <div class="actions-row">
+            <a id="downloadPngBtn" class="btn btn-success" download="review-qr.png">
+              📥 Download PNG
+            </a>
+            <button type="button" class="btn btn-outline" id="printBtn">
+              🖨️ Print
+            </button>
+            <a id="testScanBtn" class="btn btn-primary" target="_blank">
+              🚀 Test Customer Scan
+            </a>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- Table: Active Generated Links on Server -->
+    <section class="card table-card">
+      <div class="card-header-flex">
+        <div>
+          <h2>Active Generated QRs on Server</h2>
+          <p class="subtitle">QR codes generated and linked to this server</p>
+        </div>
+        <button type="button" class="btn btn-sm btn-outline" id="refreshListBtn">↻ Refresh List</button>
+      </div>
+
+      <div class="table-responsive">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Business Name</th>
+              <th>Category</th>
+              <th>Destination Review Link</th>
+              <th>Scans</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="qrsTableBody">
+            <tr>
+              <td colspan="5" class="text-center">Loading from server...</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </div>
+
+  <!-- Toast Notification -->
+  <div class="toast" id="toast">
+    <span class="toast-msg" id="toastMsg">Notification</span>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
